@@ -1,0 +1,1 @@
+{"root":["./src/main.ts","./src/utils/bullmq.ts","./src/utils/redis.ts","./src/utils/ai/chat.ts","./src/utils/ai/mistral.ts","./src/utils/ai/prompts.ts"],"version":"5.7.2"}
