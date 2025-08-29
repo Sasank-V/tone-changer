@@ -200,24 +200,6 @@ class ToneQueue {
       throw error;
     }
   }
-  /**
-   * Get versions from cache
-   * @param text - Original text
-   * @param tones - Array of tones
-   * @returns Promise<object>
-   */
-  async getVersions(text: string, tones: string[]): Promise<object> {
-    const sortedTones = tones.sort();
-    const cacheKey = `${text}:${sortedTones.join("-")}`;
-    const versions = await redisCache.getVersions(cacheKey);
-
-    return {
-      versions,
-      total: versions.length,
-      cacheKey,
-      hasVersions: versions.length > 0,
-    };
-  }
   async close(): Promise<void> {
     await this.worker.close();
     await this.queue.close();

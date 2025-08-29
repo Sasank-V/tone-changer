@@ -8,5 +8,5 @@ export const model = process.env.MISTRAL_MODEL_NAME || "mistral-small-latest";
 export const client = new Mistral({ apiKey: apiKey });
 
 export function estimateTokens(text: string): number {
-  return text.length / 4; // Rough estimation ( 1 token = 4 characters )
+  return Math.ceil(text.length / 4); // Rough estimation ( 1 token = 4 characters )
 }

@@ -1,3 +1,4 @@
+import { removeMarkdown } from "@excalidraw/markdown-to-text";
 import { client } from "./mistral";
 import { getTryAgainPrompt } from "./prompts";
 
@@ -107,15 +108,17 @@ export async function chat(
       throw new Error("No response content received from Mistral");
     }
 
-    // Handle both string and ContentChunk[] types
+    // Handle both string and ContentChunk[] types and converts markdown to text
     if (typeof responseContent === "string") {
-      return responseContent;
+      return removeMarkdown(responseContent);
     } else {
       // If it's ContentChunk[], extract text content from text chunks
-      return responseContent
-        .filter((chunk) => chunk.type === "text")
-        .map((chunk) => (chunk as any).text || "")
-        .join("");
+      return removeMarkdown(
+        responseContent
+          .filter((chunk) => chunk.type === "text")
+          .map((chunk) => (chunk as any).text || "")
+          .join("")
+      );
     }
   } catch (error) {
     console.error("Error in chat function:", error);

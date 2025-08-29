@@ -6,7 +6,7 @@ import { toneQueue } from "./utils/bullmq";
 
 //TODO:
 // Implement Stats API Endpoints for Redis and BullMQ
-// Draw an Architecture Diagram for the Backend
+// Implement Middlewares for security
 
 // Load environment variables
 dotenv.config();
@@ -48,18 +48,6 @@ app.post("/api/tone", async (req, res) => {
       details: error instanceof Error ? error.message : "Unknown error",
     });
   }
-});
-
-//POST /api/tone/version - Get all tone versions
-app.post("/api/tone/versions", async (req, res) => {
-  const { text, tones } = req.body;
-  if (!text || !tones) {
-    return res.status(400).json({ error: "Missing text or tones" });
-  }
-  try {
-    const result = await toneQueue.getVersions(text, tones);
-    res.json(result);
-  } catch (error) {}
 });
 
 //Graceful Shutdown
