@@ -32,7 +32,7 @@ The server is built with **Node.js** and **Express**, using **TypeScript** for t
   - Provides methods for getting/setting cache entries, managing version lists, and checking key existence.
   - Handles connection errors and supports graceful shutdown.
 - **BullMQ Worker**:
-  - Processes jobs concurrently (up to 3 at a time).
+  - Processes jobs one at a time.(can't be more than one because of rate limits)
   - Implements retry and backoff strategies for failed jobs.
   - Emits events for job completion and failure, aiding monitoring and debugging.
 

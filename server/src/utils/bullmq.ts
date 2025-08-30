@@ -57,12 +57,14 @@ class ToneQueue {
     //Intialise worker
     this.worker = new Worker("tone-processing", this.processJob.bind(this), {
       connection: this.redis,
-      concurrency: 3, // Process upto 3 jobs concurrently
+      concurrency: 1, // Process upto 1 job
     });
 
     //Event listeners
-    this.worker.on("completed", (job) => {
+    this.worker.on("completed", async (job) => {
       console.log(`Job ${job.id} completed successfully`);
+      // Add a 1 second delay after job completion due to rate limits
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     });
     this.worker.on("failed", (job, err) => {
       console.error(`Job ${job?.id} failed: `, err);
@@ -83,6 +85,19 @@ class ToneQueue {
       ...data,
       cacheKey,
     };
+
+    // Check queue size before adding job
+    const jobCounts = await this.queue.getJobCounts();
+    const queueSize =
+      (jobCounts.waiting || 0) +
+      (jobCounts.active || 0) +
+      (jobCounts.delayed || 0);
+    if (queueSize >= 30) {
+      return {
+        error: "Failed due to high traffic. Please try again later.",
+        dropped: true,
+      };
+    }
 
     //Check cache first (if not tryAgain)
     if (!data.tryAgain) {
