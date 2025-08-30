@@ -104,7 +104,7 @@ export const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
       setCurrentHistoryId(historyItem.inputText + tones.join("") + Date.now()); // Simple ID
       toast.success("Tone changed successfully");
     } catch (error) {
-      console.error("Failed to change tone:", error);
+      // console.error("Failed to change tone:", error);
       setOutputText("");
       setShowTryAgain(true);
       toast.error("Tone change failed, try again later");
@@ -150,7 +150,7 @@ export const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
       dispatch(addHistory(historyItem));
       toast.success("Generated new version");
     } catch (error) {
-      console.error("Failed to try again:", error);
+      // console.error("Failed to try again:", error);
       setShowTryAgain(true);
       toast.error("Try again failed");
     }
