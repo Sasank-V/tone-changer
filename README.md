@@ -1,4 +1,4 @@
-# Tone Changer Project
+# Tone Changer 
 
 This repository contains the **Tone Changer** project, which is divided into two main parts:
 
@@ -18,17 +18,9 @@ The client-side application is built using the following technologies:
 - **Vite**: A fast build tool and development server.
 - **Redux Toolkit**: For state management.
 - **Tailwind CSS**: A utility-first CSS framework for styling.
-- **Radix UI**: Accessible and customizable UI components.
+- **ShadCN UI**: Accessible and customizable UI components.
 - **Framer Motion**: For animations.
 - **Sonner**: For toast notifications.
-
-#### Key Dependencies
-
-- `react`, `react-dom`: Core React libraries.
-- `@reduxjs/toolkit`, `react-redux`: State management.
-- `tailwindcss`, `tailwind-merge`: Styling and utility classes.
-- `framer-motion`: Animation library.
-- `@radix-ui/react-*`: UI components for dialogs, tooltips, etc.
 
 ### Server
 
@@ -41,14 +33,6 @@ The server-side application is built using the following technologies:
 - **BullMQ**: A Node.js library for managing job queues.
 - **Mistral AI**: For AI-based tone-changing features.
 
-#### Key Dependencies
-
-- `express`: Web framework.
-- `redis`, `ioredis`: Redis client libraries.
-- `bullmq`: Job queue management.
-- `dotenv`: For environment variable management.
-- `helmet`, `compression`, `cors`: Middleware for security and performance.
-- `@mistralai/mistralai`: AI integration.
 
 ---
 
