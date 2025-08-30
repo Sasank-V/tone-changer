@@ -3,7 +3,6 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import { toneQueue } from "./utils/bullmq";
-import { TONE_PROMPTS } from "./utils/ai/prompts";
 import { z } from "zod";
 import { ToneRequestSchema } from "./utils/validation";
 import rateLimit from "express-rate-limit";

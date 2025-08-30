@@ -9,7 +9,7 @@ import {
 import Redis from "ioredis";
 import { redisCache } from "./redis";
 import { model } from "./ai/mistral";
-import { getTonePrompt } from "./ai/prompts";
+import { getToneDescriptions, getToneRewritePrompt } from "./ai/prompts";
 
 interface ToneJobData {
   text: string;
@@ -141,8 +141,8 @@ class ToneQueue {
     const { text, tones, tryAgain, cacheKey } = job.data;
 
     const chatOptions: ChatOptions = {
-      temperature: 0.7,
-      topP: 1.0,
+      temperature: 0.2,
+      topP: 0.8,
     };
     try {
       // Handle Try Again requests
@@ -177,14 +177,13 @@ class ToneQueue {
       }
 
       // First Attempt
-      const systemPrompt = getTonePrompt(tones);
-      const conversation = createConversation(systemPrompt);
+      const conversation = createConversation(tones);
 
-      //Generate result
+      // Generate result with strict JSON format
       const result = await chat(
         model,
         conversation,
-        `Please rewrite the following text: ${text}`,
+        getToneRewritePrompt(tones, text),
         chatOptions
       );
 

@@ -7,36 +7,88 @@
 // Sorted Order for the keys
 // (eg: "expanded-professional" instead of "professional-expaned")
 
-export const TONE_PROMPTS = {
+export const TONE_DESCRIPTIONS = {
   // Single tone positions
   professional:
-    "You are a professional communication expert. Your task is to transform the provided text into a formal, business-appropriate style. Adapt the language to be more respectful, authoritative, and sophisticated. Ensure all grammar is impeccable and replace any casual expressions, slang, or contractions with their formal equivalents. The goal is to make the text suitable for a corporate memo, a client email, or a formal report.",
-
+    "Formal, business-appropriate, and authoritative. Polished language with a serious and respectful tone, suitable for corporate communication or professional documentation.",
   expanded:
-    "You are a content elaboration specialist. Your task is to expand the provided text by adding depth, detail, and context without changing its core meaning. Incorporate relevant background information, supporting examples, and clear explanations to make the content more informative and comprehensive. Aim to increase the word count by approximately 100-200% of the original text. The final text should be rich in detail and easy to understand for someone who needs a thorough explanation.",
-
+    "Detailed, comprehensive, and informative. Adds depth and context, providing thorough explanations and supporting examples to make the content richer and more complete.",
   casual:
-    "You are a friendly conversation partner. Rewrite the given text to be more relaxed, approachable, and conversational, as if you were talking to a friend. Use informal language, contractions, and a warm, personal tone. The goal is to make the text feel natural and easygoing, like a text message or a personal chat.",
-
+    "Relaxed, friendly, and conversational. Warm and approachable language that feels like a natural chat or casual conversation with a peer.",
   concise:
-    "You are a brevity consultant. Your task is to condense the provided text to its absolute essentials. Remove any unnecessary words, redundant phrases, and filler content. Aim to reduce the word count by approximately 50-70% of the original text. The final output should be a clear, direct, and to-the-point summary that preserves the original message with maximum efficiency. Focus on what is most important and cut everything else.",
-
+    "Brief, clear, and to-the-point. Focuses on essential information only, removing unnecessary words and redundancies for maximum clarity and efficiency.",
   center:
-    "You are a balanced communication adviser. Your task is to rephrase the provided text to have a neutral, straightforward tone. Avoid being overly formal or too casual, and find a balance between brevity and detail. The rewritten text should be clear, professional but not stiff, and easy for a general audience to read and understand.",
+    "Balanced and neutral. Neither overly formal nor casual, combining clarity and readability while maintaining a professional yet approachable tone.",
 
   // Two-tone combinations
   "expanded-professional":
-    "You are a professional content specialist. Your task is to transform the provided text into a detailed yet formal piece. Expand the content by including comprehensive explanations and context, while maintaining a professional and authoritative tone. Aim to increase the word count by approximately 100-200% of the original text. Use precise language and formal vocabulary, suitable for a detailed business proposal or an in-depth professional article.",
-
+    "Detailed and formal. Provides thorough explanations and context while maintaining a polished, authoritative, and professional style.",
   "concise-professional":
-    "You are a professional brief writer. Your task is to rephrase the provided text to be both formal and concise. Use professional language while ruthlessly editing for brevity. Aim to reduce the word count by approximately 50-70% of the original text. The final output should be a professional and efficient statement, perfect for a subject line, a short memo, or a direct business communication.",
-
+    "Brief and formal. Communicates the essential information efficiently with professional, precise, and authoritative language.",
   "casual-expanded":
-    "You are a friendly storyteller. Your task is to rewrite the provided text to be both conversational and detailed. Expand the content by weaving in explanations and examples using a warm, approachable, and easygoing tone. Aim to increase the word count by approximately 100-200% of the original text. Make it feel like a comprehensive but casual conversation, suitable for a blog post or a friendly how-to guide.",
-
+    "Friendly and detailed. Engaging and approachable style with additional context and examples, making the content informative yet easygoing.",
   "casual-concise":
-    "You are a friend giving a quick tip. Your task is to rewrite the provided text to be both friendly and brief. Use informal language and contractions to keep the tone light, and cut out all non-essential information. Aim to reduce the word count by approximately 50-70% of the original text. The final text should be short, to the point, and warm, like a quick text message or a friendly note.",
+    "Friendly and brief. Warm, approachable language that communicates key points quickly and clearly, without unnecessary elaboration.",
 };
+
+/**
+ * Generates a detailed system prompt for rewriting text in specified tones
+ * @param tones - Array of tone strings (e.g., ["professional", "concise"])
+ * @returns string - System prompt for use as a system message
+ */
+export function getSystemPrompt(tones: string[]): string {
+  const toneDescriptions = getToneDescriptions(tones);
+  return `
+You are a rephrasing professional. Your sole task is to rewrite any given text according to the following tone(s):
+
+${toneDescriptions}
+
+STRICT RULES:
+- Respond ONLY in this JSON format:
+{
+  "rewritten_text": ""
+}
+- Place the rewritten version inside the "rewritten_text" field only.
+- Do NOT add extra keys, values, explanations, greetings, or commentary.
+- Do NOT prefix with phrases like "Here’s the rewrite" or "Sure".
+- Use new vocabulary and sentence structures if multiple rewrites are requested.
+- Maintain the original meaning while following the tone instructions.
+- Output plain text only, no markdown or formatting outside the JSON.
+  `.trim();
+}
+
+/**
+ * Generates a user prompt instructing the model to rewrite text in specified tones
+ * @param tones - Array of tone strings (e.g., ["professional", "concise"])
+ * @param text - The original text to rewrite
+ * @returns string - A detailed prompt for the model
+ */
+export function getToneRewritePrompt(tones: string[], text: string): string {
+  const tonesList = tones.join(" and ");
+  const toneDescriptions = getToneDescriptions(tones);
+
+  return `
+Rewrite the following text in a ${tonesList} style. Follow these STRICT instructions:
+
+1. Maintain the original meaning and intent.  
+2. Avoid copying phrases or sentence structures from the original text.  
+3. Use fresh vocabulary, varied sentence lengths, and natural flow.  
+4. Adhere to the target tone:
+   - ${toneDescriptions}
+
+STRICT RESPONSE FORMAT:
+- Respond ONLY in JSON with the following structure:
+{
+  "rewritten_text": ""
+}
+- Place the rewritten text inside the "rewritten_text" field.  
+- Do NOT add extra keys or values.  
+- Do NOT include introductions, explanations, greetings, or meta-comments.  
+- Provide a single plain text string, no markdown, no formatting.  
+
+Original text: "${text}"
+  `.trim();
+}
 
 /**
  * Function to create a try-again conversation with enhanced system prompt
@@ -45,47 +97,49 @@ export const TONE_PROMPTS = {
  * @param originalText - The original text that needs to be rewritten
  * @returns ChatMessage[] - Conversation array with system message containing try-again instructions
  */
+
 export function getTryAgainPrompt(
   tones: string[],
   previousAttempts: string[],
   originalText: string
 ): string {
-  const baseTonePrompt = getTonePrompt(tones);
+  const baseToneDescription = getToneDescriptions(tones); // updated to use descriptions
   const tonesDescription = tones.length > 1 ? tones.join(" and ") : tones[0];
 
   const tryAgainAddition = `
 
-IMPORTANT: You have previously generated these versions, so please create a COMPLETELY DIFFERENT rewrite that avoids repeating the same words, phrases, or sentence structures:
+IMPORTANT: You have previously generated these versions. Please create a COMPLETELY DIFFERENT rewrite that avoids repeating words, phrases, or sentence structures:
 
-Previous attempts to avoid:
+Previous attempts:
 ${previousAttempts
   .map((attempt, index) => `${index + 1}. "${attempt}"`)
   .join("\n")}
 
 Requirements for this new attempt:
-- Use different vocabulary and word choices than the previous attempts
+- Use different vocabulary and word choices than previous attempts
 - Employ different sentence structures and lengths
-- Approach the ${tonesDescription} tone from a fresh angle
+- Approach the ${tonesDescription} tone from a fresh angle (${baseToneDescription})
 - Maintain the same core meaning as the original text
 - Be creative and find new ways to express the message
-- If previous attempts were longer, try a different length approach
-- If previous attempts used specific phrases, avoid those exact phrases
+- If previous attempts were longer, try a different length
+- If previous attempts used specific phrases, avoid them
 
 Original text to rewrite: "${originalText}"
 
-Generate a fresh, creative rewrite that feels distinctly different from the previous attempts while still achieving the ${tonesDescription} tone.`;
+Return ONLY the rewritten text. Do NOT include introductions, explanations, or meta-comments.`;
 
-  return baseTonePrompt + tryAgainAddition;
+  return tryAgainAddition;
 }
 
 /**
- * Function to get system prompts for given set of tones
+ * Function to get tone descriptions for given set of tones
  * @param tones - Array of tone strings to apply (e.g., ["professional", "concise"])
- * @returns string - System prompt for the given combination of tones
+ * @returns string - tone description for the given combination of tones
  */
-export function getTonePrompt(tones: string[]): string {
+export function getToneDescriptions(tones: string[]): string {
   const tonesKey = tones.join("-");
   return (
-    TONE_PROMPTS[tonesKey as keyof typeof TONE_PROMPTS] || TONE_PROMPTS.center
+    TONE_DESCRIPTIONS[tonesKey as keyof typeof TONE_DESCRIPTIONS] ||
+    TONE_DESCRIPTIONS.center
   );
 }

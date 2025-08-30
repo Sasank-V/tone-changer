@@ -1,6 +1,10 @@
 import { removeMarkdown } from "@excalidraw/markdown-to-text";
 import { client } from "./mistral";
-import { getTryAgainPrompt } from "./prompts";
+import {
+  getSystemPrompt,
+  getToneDescriptions,
+  getTryAgainPrompt,
+} from "./prompts";
 
 // Message interface
 export interface ChatMessage {
@@ -12,17 +16,19 @@ export interface ChatOptions {
   temperature?: number;
   topP?: number;
 }
-
 /**
- * Function to create a new conversation with a system prompt
- * @param systemPrompt - Initial system message to set context
- * @returns ChatMessage[] - Initial message array with system prompt
+ * Function to create a new conversation with a given tones
+ * @param tones - Array of tone strings to apply (e.g., ["professional", "concise"])
+ * @returns ChatMessage[] - Initial message array with a detailed system prompt
  */
-export function createConversation(systemPrompt?: string): ChatMessage[] {
-  if (systemPrompt) {
-    return [{ role: "system", content: systemPrompt }];
-  }
-  return [];
+export function createConversation(tones: string[]): ChatMessage[] {
+  const systemPrompt = getSystemPrompt(tones);
+  return [
+    {
+      role: "system",
+      content: systemPrompt,
+    },
+  ];
 }
 
 /**
@@ -30,19 +36,55 @@ export function createConversation(systemPrompt?: string): ChatMessage[] {
  * @param tones - Array of tone strings to apply (e.g., ["professional", "concise"])
  * @param previousAttempts - Array of previous rewrite attempts to avoid repeating
  * @param originalText - The original text that needs to be rewritten
- * @returns ChatMessage[] - Conversation array with system message containing try-again instructions
+ * @returns ChatMessage[] - Conversation array with system + previous attempts + new try-again prompt
  */
 export function createTryAgainConversation(
   tones: string[],
   previousAttempts: string[],
   originalText: string
 ): ChatMessage[] {
-  return [
+  const systemPrompt = getSystemPrompt(tones);
+  // Step 1: System role with detailed instructions
+  const conversation: ChatMessage[] = [
     {
-      role: "system" as const,
-      content: getTryAgainPrompt(tones, previousAttempts, originalText),
+      role: "system",
+      content: systemPrompt,
     },
   ];
+
+  // Step 2: Add previous attempts as assistant messages
+  previousAttempts.forEach((attempt, index) => {
+    conversation.push({
+      role: "assistant",
+      content: `Previous attempt ${index + 1}: "${attempt}"`,
+    });
+  });
+
+  // Step 3: Add user request to rewrite with JSON format
+  const tonesDescriptions = getToneDescriptions(tones);
+  conversation.push({
+    role: "user",
+    content: `
+Rewrite the original text again in a ${tonesDescriptions} style,
+avoiding words, phrases, or sentence structures from previous attempts.
+
+Original text: "${originalText}"
+
+STRICT RESPONSE FORMAT:
+{
+  "rewritten_text": ""
+}
+
+Rules:
+- Place the rewritten version inside the "rewritten_text" field only.
+- Do NOT include introductions, explanations, or commentary.
+- Do NOT add extra keys or values.
+- Escape quotes inside the text if necessary.
+- Be creative and maintain the original meaning while following the tone instructions.
+    `.trim(),
+  });
+
+  return conversation;
 }
 
 /**
@@ -110,14 +152,16 @@ export async function chat(
 
     // Handle both string and ContentChunk[] types and converts markdown to text
     if (typeof responseContent === "string") {
-      return removeMarkdown(responseContent);
+      return parseRewrittenText(removeMarkdown(responseContent));
     } else {
       // If it's ContentChunk[], extract text content from text chunks
-      return removeMarkdown(
-        responseContent
-          .filter((chunk) => chunk.type === "text")
-          .map((chunk) => (chunk as any).text || "")
-          .join("")
+      return parseRewrittenText(
+        removeMarkdown(
+          responseContent
+            .filter((chunk) => chunk.type === "text")
+            .map((chunk) => (chunk as any).text || "")
+            .join("")
+        )
       );
     }
   } catch (error) {
@@ -126,6 +170,34 @@ export async function chat(
       `Failed to get response from Mistral: ${
         error instanceof Error ? error.message : "Unknown error"
       }`
+    );
+  }
+}
+
+/**
+ * Parses the model output and extracts the rewritten text
+ * @param output - The raw output string from the model
+ * @returns string - The extracted rewritten text
+ * @throws Error if the output cannot be parsed or the field is missing
+ */
+export function parseRewrittenText(output: string): string {
+  try {
+    // Remove any leading/trailing whitespace
+    const cleanedOutput = output.trim();
+
+    // Attempt to parse JSON
+    const parsed = JSON.parse(cleanedOutput);
+
+    // Check for the key
+    if (!parsed.rewritten_text || typeof parsed.rewritten_text !== "string") {
+      throw new Error('Missing or invalid "rewritten_text" field in output');
+    }
+
+    return parsed.rewritten_text;
+  } catch (err) {
+    console.error("Failed to parse rewritten text:", err);
+    throw new Error(
+      "Unable to parse model output. Ensure the response is valid JSON with a 'rewritten_text' field."
     );
   }
 }
