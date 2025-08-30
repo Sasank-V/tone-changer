@@ -6,6 +6,8 @@ import { toneQueue } from "./utils/bullmq";
 import { TONE_PROMPTS } from "./utils/ai/prompts";
 import { z } from "zod";
 import { ToneRequestSchema } from "./utils/validation";
+import rateLimit from "express-rate-limit";
+import { toneLimiter } from "./middleware/rate-limiter";
 
 //TODO:
 // Implement Stats API Endpoints for Redis and BullMQ
@@ -27,7 +29,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // POST /api/tone - Change tone of the text
-app.post("/api/tone", async (req, res) => {
+app.post("/api/tone", toneLimiter, async (req, res) => {
   const parseResult = ToneRequestSchema.safeParse(req.body);
   if (!parseResult.success) {
     return res.status(400).json({

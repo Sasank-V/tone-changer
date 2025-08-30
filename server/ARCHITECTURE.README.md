@@ -18,6 +18,9 @@ The server is built with **Node.js** and **Express**, using **TypeScript** for t
 - **Trade-offs**:
   - Asynchronous job processing introduces complexity but enables scalability and robust error handling.
   - Caching results in Redis reduces API costs and latency but requires cache invalidation strategies for stale data.
+ 
+- **Rate Limiting**: The `/api/tone` endpoint is protected by a rate-limiting middleware implemented in [`middleware/rate-limiter.ts`](./middleware/rate-limiter.ts) using `express-rate-limit`. This restricts each IP to 10 requests per minute, helping prevent abuse and ensuring fair usage.
+- **Request Validation**: All incoming requests to `/api/tone` are validated using a Zod schema defined in [`src/utils/validation.ts`](./src/utils/validation.ts). The schema enforces a maximum text length of 1000 characters and restricts tones to valid enum values, ensuring robust input validation and error handling.
 
 ---
 
@@ -48,7 +51,8 @@ The server is built with **Node.js** and **Express**, using **TypeScript** for t
 
 ## Error Handling & Edge Cases
 
-- **Validation**: Incoming requests are validated for required fields and correct types. Invalid requests return a 400 error.
+- **Validation**: Incoming requests are validated for required fields and correct types using Zod (see [`validation.ts`](./src/utils/validation.ts)). Invalid requests return a 400 error.
+- **Rate Limiting**: Requests are subject to rate limiting (see [`rate-limiter.ts`](./middleware/rate-limiter.ts)). Exceeding the limit returns a 429 error with a clear message.
 - **Graceful Fallbacks**: If a cache miss occurs, the job is processed by the AI. If the AI or queue fails, errors are logged and a 500 error is returned to the client.
 - **Retry Logic**: BullMQ automatically retries failed jobs up to 3 times with exponential backoff.
 - **Connection Handling**: Redis and BullMQ connections are monitored for errors, and the server supports graceful shutdown on SIGTERM/SIGINT.
