@@ -1,69 +1,103 @@
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Tone Changer - Client
 
-Currently, two official plugins are available:
+This is the client-side application for the Tone Changer project, built using React, TypeScript, and Vite. It provides a modern and efficient development environment with hot module replacement (HMR) and strict type checking.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Prerequisites
 
-## Expanding the ESLint configuration
+Before setting up the project, ensure you have the following installed on your system:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Node.js** (v16 or higher) - [Download Node.js](https://nodejs.org/)
+- **npm** (Node Package Manager) or **yarn**
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Setup Instructions
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+Follow these steps to set up and run the client application locally:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. **Clone the Repository**
+   ```bash
+   git clone https://github.com/Sasank-V/tone-changer.git
+   cd tone-changer/client
+   ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. **Install Dependencies**
+   Install the required dependencies using npm or yarn:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+3. **Set Up Environment Variables**
+   Create a `.env` file in the root of the `client` folder by copying the `.env.example` file:
+   ```bash
+   cp .env.example .env
+   ```
+   Open the `.env` file and configure the environment variables as needed. The default `.env.example` file contains:
+   ```bash
+   VITE_API_BASE_URL="http://localhost:3000/api"
+   ```
+   - `VITE_API_BASE_URL`: The base URL for the API server. Update this to match your server's URL if it differs.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+4. **Start the Development Server**
+   Run the following command to start the development server:
+   ```bash
+   npm run dev
+   # or
+   yarn dev
+   ```
+   The application will be available at `http://localhost:5173` by default.
+
+5. **Build for Production**
+   To create an optimized production build, run:
+   ```bash
+   npm run build
+   # or
+   yarn build
+   ```
+   The build output will be available in the `dist` folder.
+
+6. **Preview the Production Build**
+   To preview the production build locally, run:
+   ```bash
+   npm run preview
+   # or
+   yarn preview
+   ```
+
+## Project Structure
+
+The `client` folder is organized as follows:
+
+- **`public/`**: Static assets such as images and icons.
+- **`src/`**: Source code for the application.
+  - **`assets/`**: Additional assets used in the application.
+  - **`components/`**: Reusable React components.
+  - **`context/`**: Context providers for global state management.
+  - **`hooks/`**: Custom React hooks.
+  - **`lib/`**: Utility functions and libraries.
+  - **`theme/`**: Theme-related files.
+  - **`ui/`**: ShadCN UI components and design elements.
+- **`tsconfig.json`**: TypeScript configuration file.
+- **`vite.config.ts`**: Vite configuration file.
+
+## Scripts
+
+The following scripts are available in the `package.json`:
+
+- `dev`: Starts the development server.
+- `build`: Builds the application for production.
+- `preview`: Previews the production build locally.
+- `lint`: Runs ESLint to check for code quality issues.
+
+## ESLint Configuration
+
+The project uses ESLint for linting and code quality checks. The configuration can be expanded to include type-aware lint rules and React-specific rules. Refer to the comments in the `eslint.config.js` file for more details.
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+---
+
+For any issues or contributions, feel free to open a pull request or create an issue in the repository.

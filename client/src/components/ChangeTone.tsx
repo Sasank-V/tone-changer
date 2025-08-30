@@ -30,13 +30,13 @@ interface ChangeToneRef {
   handleHistorySelect: (historyItem: HistoryState) => void;
 }
 
-const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
+export const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
   const dispatch = useDispatch<AppDispatch>();
   const [inputText, setInputText] = useState("");
   const [outputText, setOutputText] = useState("");
   const [tonePos, setTonePos] = useState(defaultTone);
   const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
-
+  const [showTryAgain, setShowTryAgain] = useState<boolean>(false);
   // Get current state from Redux for undo/redo
   const currentState = useSelector((state: RootState) =>
     selectCurrentState(state)
@@ -76,7 +76,6 @@ const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
   const handleToneChange = async (newTonePos: { row: number; col: number }) => {
     setTonePos(newTonePos);
 
-    // If center position or no input text, just update position
     if (
       (newTonePos.row === 1 && newTonePos.col === 1) ||
       inputText.trim() === ""
@@ -93,8 +92,8 @@ const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
 
       const newOutput = response.result;
       setOutputText(newOutput);
+      setShowTryAgain(true); // Show Try Again button on success
 
-      // Save to history: inputText + tones = output
       const historyItem = {
         inputText,
         tones,
@@ -108,6 +107,8 @@ const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
       toast.success("Tone changed successfully");
     } catch (error) {
       console.error("Failed to change tone:", error);
+      setOutputText("");
+      setShowTryAgain(true); // Show Try Again button on failure
       toast.error("Tone change failed, try again later");
     }
   };
@@ -128,8 +129,8 @@ const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
 
       const newOutput = response.result;
       setOutputText(newOutput);
+      setShowTryAgain(true); // Ensure Try Again button remains visible
 
-      // Update try again count and save new history item
       if (currentHistoryId) {
         dispatch(incrementTryAgain(currentHistoryId));
       }
@@ -146,6 +147,7 @@ const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
       toast.success("Generated new version");
     } catch (error) {
       console.error("Failed to try again:", error);
+      setShowTryAgain(true); // Ensure Try Again button remains visible
       toast.error("Try again failed");
     }
   };
@@ -170,7 +172,7 @@ const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
   return (
     <div className="min-h-[calc(100vh-4rem)]">
       {/* Main content area with responsive layout */}
-      <div className="h-full p-6">
+      <div className="p-6">
         {/* Mobile layout: Input -> Tone Picker -> Output */}
         <div className="flex flex-col gap-4 lg:hidden">
           <div
@@ -195,7 +197,7 @@ const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
             />
 
             {/* Try Again Button */}
-            {outputText && (
+            {showTryAgain && (
               <Button
                 onClick={handleTryAgain}
                 disabled={isChangingTone || inputText.trim() === ""}
@@ -220,9 +222,9 @@ const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
         </div>
 
         {/* Desktop layout: Input/Output column + Tone Picker column */}
-        <div className="hidden lg:grid lg:grid-cols-2 gap-6 h-full overflow-hidden">
+        <div className="hidden lg:grid lg:grid-cols-2 gap-6 h-[calc(100vh-8rem)] overflow-hidden">
           {/* Left column - Input and Output */}
-          <div className="flex flex-col gap-4 h-full overflow-hidden">
+          <div className="flex flex-col gap-4 h-full overflow-y-auto">
             <div className="flex-1 min-h-0">
               <InputTextSection
                 text={inputText}
@@ -239,7 +241,7 @@ const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
           </div>
 
           {/* Right column - Tone Picker */}
-          <div className="flex flex-col items-center justify-center gap-4 h-full">
+          <div className="flex flex-col items-center justify-center gap-4 h-full overflow-y-auto">
             <TonePickerSection
               tonePos={tonePos}
               setTonePos={handleToneChange}
@@ -247,7 +249,7 @@ const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
             />
 
             {/* Try Again Button */}
-            {outputText && (
+            {showTryAgain && (
               <Button
                 onClick={handleTryAgain}
                 disabled={isChangingTone || inputText.trim() === ""}
@@ -266,5 +268,3 @@ const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
 });
 
 ChangeTone.displayName = "ChangeTone";
-
-export default ChangeTone;
