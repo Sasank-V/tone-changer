@@ -9,19 +9,26 @@ const labels = {
   bottom: ["Casual"],
 };
 
+interface TonePickerSectionProps {
+  tonePos: { row: number; col: number };
+  setTonePos: (pos: { row: number; col: number }) => void;
+  disabled?: boolean;
+  onCenterCell?: () => void;
+}
+
 export const TonePickerSection = ({
   tonePos,
   setTonePos,
   disabled = false,
-}: {
-  tonePos: { row: number; col: number };
-  setTonePos: (pos: { row: number; col: number }) => void;
-  disabled?: boolean;
-}) => {
+  onCenterCell,
+}: TonePickerSectionProps) => {
   const grid = [0, 1, 2];
   const handleClick = (row: number, col: number) => {
     if (!disabled) {
       setTonePos({ row, col });
+      if (row === 1 && col === 1 && onCenterCell) {
+        onCenterCell();
+      }
     }
   };
   return (

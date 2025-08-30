@@ -21,8 +21,6 @@ import {
   useChangeToneMutation,
 } from "@/lib/redux";
 import { toast } from "sonner";
-import { Button } from "@/components/ui";
-import { RotateCcw } from "lucide-react";
 
 const defaultTone = { row: 1, col: 1 };
 
@@ -92,7 +90,7 @@ export const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
 
       const newOutput = response.result;
       setOutputText(newOutput);
-      setShowTryAgain(true); // Show Try Again button on success
+      setShowTryAgain(true);
 
       const historyItem = {
         inputText,
@@ -108,9 +106,15 @@ export const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
     } catch (error) {
       console.error("Failed to change tone:", error);
       setOutputText("");
-      setShowTryAgain(true); // Show Try Again button on failure
+      setShowTryAgain(true);
       toast.error("Tone change failed, try again later");
     }
+  };
+
+  // Callback for center cell (1,1)
+  const handleCenterCell = () => {
+    setOutputText("");
+    setShowTryAgain(false);
   };
 
   // Handle try again
@@ -129,7 +133,7 @@ export const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
 
       const newOutput = response.result;
       setOutputText(newOutput);
-      setShowTryAgain(true); // Ensure Try Again button remains visible
+      setShowTryAgain(true);
 
       if (currentHistoryId) {
         dispatch(incrementTryAgain(currentHistoryId));
@@ -147,7 +151,7 @@ export const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
       toast.success("Generated new version");
     } catch (error) {
       console.error("Failed to try again:", error);
-      setShowTryAgain(true); // Ensure Try Again button remains visible
+      setShowTryAgain(true);
       toast.error("Try again failed");
     }
   };
@@ -187,27 +191,15 @@ export const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
           </div>
 
           <div
-            className="flex-shrink-0"
+            className="flex flex-col gap-2 items-center"
             style={{ height: "50vh", minHeight: 120 }}
           >
             <TonePickerSection
               tonePos={tonePos}
               setTonePos={handleToneChange}
               disabled={isChangingTone || inputText.trim() === ""}
+              onCenterCell={handleCenterCell}
             />
-
-            {/* Try Again Button */}
-            {showTryAgain && (
-              <Button
-                onClick={handleTryAgain}
-                disabled={isChangingTone || inputText.trim() === ""}
-                variant="outline"
-                size="sm"
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Try Again
-              </Button>
-            )}
           </div>
 
           <div
@@ -217,6 +209,9 @@ export const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
             <OutputTextSection
               outputText={outputText}
               isLoading={isChangingTone}
+              showTryAgain={showTryAgain}
+              onTryAgain={handleTryAgain}
+              tryAgainDisabled={isChangingTone || inputText.trim() === ""}
             />
           </div>
         </div>
@@ -236,6 +231,9 @@ export const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
               <OutputTextSection
                 outputText={outputText}
                 isLoading={isChangingTone}
+                showTryAgain={showTryAgain}
+                onTryAgain={handleTryAgain}
+                tryAgainDisabled={isChangingTone || inputText.trim() === ""}
               />
             </div>
           </div>
@@ -246,20 +244,8 @@ export const ChangeTone = forwardRef<ChangeToneRef>((_, ref) => {
               tonePos={tonePos}
               setTonePos={handleToneChange}
               disabled={isChangingTone || inputText.trim() === ""}
+              onCenterCell={handleCenterCell}
             />
-
-            {/* Try Again Button */}
-            {showTryAgain && (
-              <Button
-                onClick={handleTryAgain}
-                disabled={isChangingTone || inputText.trim() === ""}
-                variant="outline"
-                className="mt-4"
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Try Again
-              </Button>
-            )}
           </div>
         </div>
       </div>

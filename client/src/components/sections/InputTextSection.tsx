@@ -1,3 +1,14 @@
+import { Button } from "@/components/ui";
+import { Undo, Redo } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  undo,
+  redo,
+  selectCanUndo,
+  selectCanRedo,
+  type AppDispatch,
+  type RootState,
+} from "@/lib/redux";
 import {
   Card,
   CardContent,
@@ -15,10 +26,43 @@ export const InputTextSection = ({
   setText: (t: string) => void;
   isLoading?: boolean;
 }) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const canUndo = useSelector((state: RootState) => selectCanUndo(state));
+  const canRedo = useSelector((state: RootState) => selectCanRedo(state));
+
+  const handleUndo = () => {
+    dispatch(undo());
+  };
+  const handleRedo = () => {
+    dispatch(redo());
+  };
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader className="pb-3 flex-shrink-0">
+      <CardHeader className="pb-3 flex justify-between items-center">
         <CardTitle className="text-lg">Enter your text</CardTitle>
+        {/* Undo/Redo buttons */}
+        <div className="flex items-center gap-2 mt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleUndo}
+            disabled={!canUndo}
+            className="h-7 px-2 text-sm sm:h-8 sm:px-3"
+          >
+            <Undo className="h-3 w-3 mr-1 sm:h-4 sm:w-4 sm:mr-1" />
+            <span className="hidden xs:inline">Undo</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRedo}
+            disabled={!canRedo}
+            className="h-7 px-2 text-sm sm:h-8 sm:px-3"
+          >
+            <Redo className="h-3 w-3 mr-1 sm:h-4 sm:w-4 sm:mr-1" />
+            <span className="hidden xs:inline">Redo</span>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col min-h-0">
         <div className="relative w-full h-full">
