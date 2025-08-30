@@ -3,6 +3,9 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import { toneQueue } from "./utils/bullmq";
+import { TONE_PROMPTS } from "./utils/ai/prompts";
+import { z } from "zod";
+import { ToneRequestSchema } from "./utils/validation";
 
 //TODO:
 // Implement Stats API Endpoints for Redis and BullMQ
@@ -25,15 +28,14 @@ app.use(bodyParser.json());
 
 // POST /api/tone - Change tone of the text
 app.post("/api/tone", async (req, res) => {
-  const { text, tones, tryAgain = false } = req.body;
-  if (!text || !tones) {
-    return res.status(400).json({ error: "Missing text or tones" });
+  const parseResult = ToneRequestSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({
+      error: "Invalid request body",
+      details: parseResult.error.errors,
+    });
   }
-
-  if (!Array.isArray(tones) || tones.length === 0) {
-    return res.status(400).json({ error: "Tones must be a non-empty array" });
-  }
-
+  const { text, tones, tryAgain = false } = parseResult.data;
   try {
     const result = await toneQueue.addJob({
       text,
