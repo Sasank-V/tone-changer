@@ -68,11 +68,19 @@ export const InputTextSection = ({
         <div className="relative w-full h-full">
           <Textarea
             value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Type or paste your text here..."
+            onChange={(e) => {
+              if (e.target.value.length <= 1000) {
+                setText(e.target.value);
+              }
+            }}
+            maxLength={1000}
+            placeholder="Type or paste your text here... (max 1000 characters)"
             className="w-full h-full resize-none border-none focus:ring-0 focus:outline-none"
             disabled={isLoading}
           />
+          <div className="absolute bottom-2 right-4 text-xs text-muted-foreground">
+            {text.length}/1000
+          </div>
           {isLoading && (
             <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
               <div className="flex items-center gap-2"></div>
