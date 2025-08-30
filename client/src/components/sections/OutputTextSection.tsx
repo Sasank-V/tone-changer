@@ -86,6 +86,9 @@ export const OutputTextSection = ({
             className="w-full h-full resize-none border-none focus:ring-0 focus:outline-none"
             disabled={isLoading}
           />
+          <div className="absolute bottom-2 right-4 text-xs text-muted-foreground">
+            {outputText.length} characters
+          </div>
           {isLoading && (
             <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
               <div className="flex items-center gap-2">
