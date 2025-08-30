@@ -8,7 +8,7 @@ import {
 } from "./ai/chat";
 import Redis from "ioredis";
 import { redisCache } from "./redis";
-import { estimateTokens, model } from "./ai/mistral";
+import { model } from "./ai/mistral";
 import { getTonePrompt } from "./ai/prompts";
 
 interface ToneJobData {
@@ -120,7 +120,7 @@ class ToneQueue {
 
     // Wait for job completion with timeout
     try {
-      const result = await job.waitUntilFinished(this.queueEvents, 30000); // 30 second timeout
+      const result = await job.waitUntilFinished(this.queueEvents, 60000); // 60 second timeout
       return result;
     } catch (error) {
       console.error(`Job ${job.id} failed or timed out:`, error);
@@ -140,17 +140,7 @@ class ToneQueue {
   private async processJob(job: Job<ToneJobData>): Promise<any> {
     const { text, tones, tryAgain, cacheKey } = job.data;
 
-    // Chat Options for token control
-    let maxTokens = 0;
-    const tokens = estimateTokens(text);
-    if (tones.includes("concise")) {
-      maxTokens = tokens; // about the same as input length
-    } else if (tones.includes("expanded")) {
-      maxTokens = tokens * 3; // allow up to ~3x longer
-    }
-
     const chatOptions: ChatOptions = {
-      maxTokens,
       temperature: 0.7,
       topP: 1.0,
     };
